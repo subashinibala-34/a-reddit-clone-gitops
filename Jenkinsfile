@@ -11,7 +11,7 @@ pipeline {
         }
         stage("Checkout from SCM") {
             steps {
-                git branch: 'main', credentialsId: 'github', url: 'https://github.com/subashinibala-34/a-reddit-clone-gitops'
+                git branch: 'main', credentialsId: 'github-ssh', url: 'git@github.com:subashinibala-34/a-reddit-clone-gitops.git'
             }
         }
         stage("Update the Deployment Tags") {
@@ -25,16 +25,16 @@ pipeline {
         }
         stage("Push the changed deployment file to GitHub") {
             steps {
-                sh """
-                    git config --global user.name "subashinibala-34"
-                    git config --global user.email "subabala1299@gmail.com"
-                    git add deployment.yaml
-                    git commit -m "Updated Deployment Manifest"
-                """
-                withCredentials([usernamePassword(credentialsId: 'github', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
-                    sh "git push https://${GIT_USER}:${GIT_TOKEN}@github.com/subashinibala-34/a-reddit-clone-gitops.git main"
+                sshagent(['github-ssh']) {
+                    sh """
+                        git config --global user.name "subashinibala-34"
+                        git config --global user.email "subabala1299@gmail.com"
+                        git add deployment.yaml
+                        git commit -m "Updated Deployment Manifest"
+                        git push origin main
+                    """
                 }
             }
         }
-    } // <-- Missing closing bracket added here
-} // <-- Closing bracket for the pipeline block
+    }
+}
